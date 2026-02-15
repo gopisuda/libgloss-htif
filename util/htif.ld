@@ -1,6 +1,15 @@
 OUTPUT_ARCH ("riscv")
 ENTRY (_start)
 
+PHDRS
+{
+  text    PT_LOAD    FLAGS(5);   /* R X */
+  rodata  PT_LOAD    FLAGS(4);   /* R   */
+  data    PT_LOAD    FLAGS(6);   /* R W */
+  tls     PT_TLS;
+  stack   PT_GNU_STACK FLAGS(6); /* R W */
+}
+
 SECTIONS
 {
     . = 0x80000000;
@@ -14,7 +23,7 @@ SECTIONS
         *(.text.startup .text.startup.*)
         *(.text .text.*)
         *(.gnu.linkonce.t.*)
-    }
+    } :text
     PROVIDE (_etext = .);
 
     /* Static Thread Local Storage template */
@@ -23,7 +32,7 @@ SECTIONS
         *(.tdata .tdata.*)
         *(.gnu.linkonce.td.*)
         PROVIDE_HIDDEN (__tdata_end = .);
-    }
+    } :tls
     PROVIDE (__tdata_size = SIZEOF (.tdata));
 
     .tbss (NOLOAD) : {
@@ -33,33 +42,33 @@ SECTIONS
         *(.gnu.linkonce.tb.*)
         *(.tcommon)
         PROVIDE_HIDDEN (__tbss_end = .);
-    }
+    } :tls
     PROVIDE (__tbss_size = SIZEOF (.tbss));
 
     .rodata : {
         *(.rodata .rodata.*)
         *(.gnu.linkonce.r.*)
-    }
+    } :rodata
 
     .preinit_array : {
         PROVIDE_HIDDEN (__preinit_array_start = .);
         KEEP (*(.preinit_array))
         PROVIDE_HIDDEN (__preinit_array_end = .);
-    }
+    } :rodata
 
     .init_array : {
         PROVIDE_HIDDEN (__init_array_start = .);
         KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
         KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
         PROVIDE_HIDDEN (__init_array_end = .);
-    }
+    } :rodata
 
     .fini_array : {
         PROVIDE_HIDDEN (__fini_array_start = .);
         KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
         KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
         PROVIDE_HIDDEN (__fini_array_end = .);
-    }
+    } :rodata
 
     .ctors : {
         KEEP (*crtbegin.o(.ctors))
@@ -67,7 +76,7 @@ SECTIONS
         KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o) .ctors))
         KEEP (*(SORT(.ctors.*)))
         KEEP (*(.ctors))
-    }
+    } :rodata
 
     .dtors : {
         KEEP (*crtbegin.o(.dtors))
@@ -75,17 +84,17 @@ SECTIONS
         KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o) .dtors))
         KEEP (*(SORT(.dtors.*)))
         KEEP (*(.dtors))
-    }
+    } :rodata
 
     /* Host-Target Interface */
     .htif ALIGN(0x40) : {
         *(.htif)
-    }
+    } :rodata
 
     .data : ALIGN (8) {
         *(.data)
         *(.gnu.linkonce.d.*)
-    }
+    } :data
 
     .sdata : {
         PROVIDE (__global_pointer$ = . + 0x800);
@@ -96,7 +105,7 @@ SECTIONS
         *(.srodata.cst4)
         *(.srodata.cst2)
         *(.srodata .srodata.*)
-    }
+    } :data
 
     PROVIDE (_edata = .);
 
@@ -108,7 +117,7 @@ SECTIONS
         *(.gnu.linkonce.b.*)
         *(COMMON)
         PROVIDE_HIDDEN (__bss_end = .);
-    }
+    } :data
 
     . = ALIGN (8);
     PROVIDE (_end = .);
