@@ -91,6 +91,10 @@ SECTIONS
         *(.htif)
     } :rodata
 
+    .packed_weights_u64 : ALIGN(8) {
+        KEEP(*(.packed_weights_u64))
+    } :rodata
+
     .data : ALIGN (8) {
         *(.data)
         *(.gnu.linkonce.d.*)
