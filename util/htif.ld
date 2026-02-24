@@ -90,7 +90,12 @@ SECTIONS
     .htif ALIGN(0x40) : {
         *(.htif)
     } :rodata
-
+    /*
+      model's weights have to be pre-trained and packed in a specific format
+      and stored as a constant uint64_t array and named as packed_weights_u64
+      and the relevant linker attribute added above its definition.
+      For an example, take a look at test_palani.c
+    */
     .packed_weights_u64 : ALIGN(8) {
         KEEP(*(.packed_weights_u64))
     } :rodata
